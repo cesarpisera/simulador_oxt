@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#00457c">
+  <title>Simulador Obras por Terceros</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="device">
+    <header class="topbar">
+      <button class="icon-btn" id="btnClose" aria-label="Cerrar">
+        <svg viewBox="0 0 24 24"><path d="M5 5l14 14M19 5L5 19"/></svg>
+      </button>
+      <h1 id="topTitle">Obras</h1>
+      <button class="icon-btn" id="btnGps" aria-label="Capturar ubicación">
+        <svg viewBox="0 0 24 24"><path d="M14 4l6 6-3 3-6-6zM9 9l6 6M11 7l-4 4 6 6 4-4M4 14c0 3 3 6 6 6M2 14c0 4.5 3.5 8 8 8"/></svg>
+      </button>
+      <button class="icon-btn" id="btnMenu" aria-label="Menú">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+      </button>
+    </header>
+
+    <main id="screen" class="screen"></main>
+
+    <footer class="bottombar" id="bottombar" hidden>
+      <button class="nav-btn left" id="btnPrev" aria-label="Página anterior">
+        <svg viewBox="0 0 24 24"><path d="M15 4l-8 8 8 8"/></svg>
+      </button>
+      <span id="pageLabel">1 de 2</span>
+      <button class="nav-btn right" id="btnNext" aria-label="Página siguiente">
+        <svg viewBox="0 0 24 24"><path d="M9 4l8 8-8 8"/></svg>
+      </button>
+    </footer>
+
+    <nav class="menu" id="menu" hidden>
+      <button data-menu="home">Inicio / lista de obras</button>
+      <button data-menu="saved">Actas guardadas</button>
+      <button data-menu="demo">Cargar ejemplo con defectos</button>
+      <button data-menu="reset">Borrar actas guardadas</button>
+      <button data-menu="about">Acerca del simulador</button>
+    </nav>
+
+    <div class="toast" id="toast" hidden></div>
+    <div class="modal" id="modal" hidden></div>
+  </div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
