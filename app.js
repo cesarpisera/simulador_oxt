@@ -7,6 +7,12 @@
   const screen = $("#screen");
   const STORE_KEY = "simOxt.actas.v1";
 
+  const ACCIONES = [
+    ["solucionadoEnDia", "Defecto solucionado en día"],
+    ["solucionadoDiaAnterior", "Defecto solucionado de la observacion del día anterior"],
+    ["insalvable", "Defecto insalvable en el día, se envía al equipo al obrador"]
+  ];
+
   // ---------- Íconos ----------
   const ICON = {
     camera: '<svg viewBox="0 0 40 40"><rect x="4" y="11" width="32" height="22" rx="2"/><path d="M13 11l3-4h8l3 4"/><circle cx="20" cy="22" r="6"/><path d="M8 15h3"/></svg>',
@@ -46,8 +52,8 @@
       hito: [],
       defecto: "No",
       defectos: defectos,
-      accion: { solucionadoEnDia: "" },
-      ordenServicio: { notas: "" },
+      accion: { solucionadoEnDia: "No", solucionadoDiaAnterior: "No", insalvable: "No" },
+      ordenServicio: { numero: "" },
       descripcionDefecto: "",
       dniSoldador: "",
       jefeObra: "",
@@ -60,7 +66,7 @@
   }
 
   function nuevaUI() {
-    return { open: {}, groups: { defecto: true, accion: true, orden: false, registro: true }, errors: {} };
+    return { open: {}, groups: { defecto: true, accion: true, orden: true, registro: true }, errors: {} };
   }
 
   // ---------- Utilidades ----------
@@ -300,14 +306,12 @@
         return b;
       });
       // Sección Acción
-      h += group("accion", "Accion", () =>
-        '<div class="field' + inv("accion") + '" id="fld-accion"><div class="field-label">Defecto solucionado en día <span class="req">*</span></div>' +
-        siNo("accion", s.accion.solucionadoEnDia) + fieldErr("accion") + "</div>" +
-        '<div class="pending-note">Borrador: en las capturas solo se ve este campo de la sección Acción. Mandá capturas del resto para completarla.</div>');
+      h += group("accion", "Accion", () => ACCIONES.map(x =>
+        '<div class="field' + inv("accion:" + x[0]) + '"><div class="field-label">' + esc(x[1]) + ' <span class="req">*</span></div>' +
+        siNo("accion:" + x[0], s.accion[x[0]]) + fieldErr("accion:" + x[0]) + "</div>").join(""));
       // Sección Orden de servicio
       h += group("orden", "Orden de servicio", () =>
-        '<div class="pending-note">Borrador: faltan capturas de esta sección. Mientras tanto podés anotar lo que corresponda.</div>' +
-        '<div class="field"><label for="f-os">Notas de la orden de servicio (provisorio)</label><textarea class="textarea" id="f-os" data-bind="ordenServicio.notas">' + esc(s.ordenServicio.notas) + "</textarea></div>");
+        '<div class="field' + inv("os") + '"><label for="f-os">Número de orden de servicio <span class="req">*</span></label><input class="input" id="f-os" data-bind="ordenServicio.numero" value="' + esc(s.ordenServicio.numero) + '">' + fieldErr("os") + "</div>");
 
       h += '<div class="field"><label for="f-desdef">Descripcion del defecto</label><textarea class="textarea" id="f-desdef" data-bind="descripcionDefecto">' + esc(s.descripcionDefecto) + "</textarea></div>";
     }
@@ -365,7 +369,8 @@
         }
       });
       if (!alguno) e.defecto = "Marcaste Defecto: Si, pero ningún tipo de defecto está en Si.";
-      if (!s.accion.solucionadoEnDia) e.accion = "Indicá si el defecto se solucionó en el día.";
+      ACCIONES.forEach(x => { if (!s.accion[x[0]]) e["accion:" + x[0]] = "Elegí Si o No."; });
+      if (!String(s.ordenServicio.numero).trim()) e.os = "Ingresá el número de orden de servicio.";
     }
     const av = s.actividades.map(a => a.avance).filter(v => v !== "");
     if (av.some(v => isNaN(+v) || +v < 0 || +v > 100)) e.avance = "El avance tiene que ser un número de 0 a 100.";
@@ -376,7 +381,8 @@
     const e = validate();
     ui.errors = e;
     if (Object.keys(e).length) {
-      if (e["accion"]) ui.groups.accion = true;
+      if (Object.keys(e).some(k => k.indexOf("accion:") === 0)) ui.groups.accion = true;
+      if (e.os) ui.groups.orden = true;
       if (Object.keys(e).some(k => k.indexOf("det:") === 0)) ui.groups.defecto = true;
       render(true);
       const first = screen.querySelector(".invalid");
@@ -419,8 +425,8 @@
           st.detalle.forEach(x => L.push("     - " + x));
         }
       });
-      L.push("Defecto solucionado en día: " + a.accion.solucionadoEnDia);
-      if (a.ordenServicio.notas) L.push("Orden de servicio (notas): " + a.ordenServicio.notas);
+      ACCIONES.forEach(x => L.push(x[1] + ": " + (a.accion[x[0]] || "-")));
+      L.push("Número de orden de servicio: " + (a.ordenServicio.numero || "-"));
       if (a.descripcionDefecto) L.push("Descripción del defecto: " + a.descripcionDefecto);
     }
     if (a.dniSoldador) L.push("DNI soldador fusionista: " + a.dniSoldador);
@@ -546,7 +552,7 @@
   function aboutModal() {
     const m = openModal("<h3>Acerca del simulador</h3><p>Reproduce las pantallas de la app de inspección de Obras por Terceros (Datos de la obra y Acta de Inspección digital) para practicar y probar casos antes de comunicar tareas.</p>" +
       "<p>Las obras son ficticias. Nada se envía a ningún sistema: las actas quedan en este navegador y se pueden copiar o descargar.</p>" +
-      "<p class=\"muted\">Las secciones Acción y Orden de servicio están en borrador hasta tener sus capturas. Las listas se editan en <code>data.js</code>.</p>" +
+      "<p class=\"muted\">Las listas y las obras de ejemplo se editan en <code>data.js</code>.</p>" +
       '<div class="modal-actions"><button class="btn primary" data-m="ok">Cerrar</button></div>');
     m.onclick = ev => { if (ev.target.closest("[data-m]")) closeModal(); };
   }
@@ -570,7 +576,7 @@
     state.defecto = "Si";
     state.defectos.mecanico = { tiene: "Si", detalle: ["Uniones deficientes"] };
     state.defectos.seguridad = { tiene: "Si", detalle: ["Balizamiento", "Señalizacion"] };
-    state.accion.solucionadoEnDia = "No";
+    state.ordenServicio.numero = "OS-12345";
     state.descripcionDefecto = "Fusión sin registrar y zanja sin balizar en la esquina.";
     state.jefeObra = "Juan Pérez";
     state.actividades[0].descripcion = "Inspección de tendido";
@@ -722,9 +728,9 @@
     else if (n === "hito") { toggleIn(s.hito, t.value, t.checked); delete ui.errors.hito; }
     else if (n === "defecto") {
       s.defecto = t.value; delete ui.errors.defecto;
-      if (t.value === "No") Object.keys(ui.errors).forEach(k => { if (k.indexOf("det:") === 0 || k === "accion") delete ui.errors[k]; });
+      if (t.value === "No") Object.keys(ui.errors).forEach(k => { if (k.indexOf("det:") === 0 || k.indexOf("accion:") === 0 || k === "os") delete ui.errors[k]; });
     }
-    else if (n === "accion") { s.accion.solucionadoEnDia = t.value; delete ui.errors.accion; }
+    else if (n.indexOf("accion:") === 0) { s.accion[n.slice(7)] = t.value; delete ui.errors[n]; }
     else if (n.indexOf("def:") === 0) {
       const id = n.slice(4);
       s.defectos[id].tiene = t.value;

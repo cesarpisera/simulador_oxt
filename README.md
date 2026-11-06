@@ -18,8 +18,3 @@ ningún sistema: las actas quedan en el navegador y se pueden copiar o descargar
 - En la PC: abrir `index.html` con doble clic.
 - En GitHub Pages: Settings → Pages → Source: "Deploy from a branch",
   rama `main`, carpeta `/ (root)`.
-
-## Pendiente
-
-- Sección **Acción**: solo está "Defecto solucionado en día".
-- Sección **Orden de servicio**: sin campos reales (falta captura).
